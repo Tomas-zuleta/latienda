@@ -2,7 +2,7 @@ import axios from "axios";
 
 // URL de la API desplegada en Render
 const api = axios.create({
-  baseURL: "https://latiendas.onrender.com",
+  baseURL: "https://latiendas.onrender.com/api",
   headers: {
     "Content-Type": "application/json",
   },
