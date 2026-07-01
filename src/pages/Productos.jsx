@@ -13,10 +13,12 @@ export default function Productos() {
   async function cargarProductos() {
     setCargando(true);
     setError("");
+
     try {
       const res = await api.get("/Producto/Lista");
       setProductos(res.data.response ?? []);
     } catch (err) {
+      console.error(err);
       setError("No se pudieron cargar los productos.");
     } finally {
       setCargando(false);
@@ -30,38 +32,54 @@ export default function Productos() {
   async function manejarGuardar(datos) {
     setGuardando(true);
     setError("");
+
     try {
       if (productoEditando) {
-        await api.put(`/Producto/Editar/${productoEditando.idProducto}`, datos);
+        await api.put(
+          `/Producto/Editar/${productoEditando.idProducto}`,
+          datos
+        );
       } else {
         await api.post("/Producto/Guardar", datos);
       }
+
       setMostrarForm(false);
       setProductoEditando(null);
       await cargarProductos();
     } catch (err) {
-      setError("No se pudo guardar el producto. Revisa los datos.");
+      console.error(err);
+      setError("No se pudo guardar el producto.");
     } finally {
       setGuardando(false);
     }
   }
 
   async function manejarEliminar(idProducto) {
-    if (!confirm("¿Eliminar este producto?")) return;
-    setError("");
+    if (!window.confirm("¿Eliminar este producto?")) return;
+
     try {
       await api.delete(`/Producto/Eliminar/${idProducto}`);
       await cargarProductos();
     } catch (err) {
+      console.error(err);
       setError("No se pudo eliminar el producto.");
     }
   }
 
-  function abrirEdicion(producto) {
-  console.log(producto);
-  setProductoEditando(producto);
-  setMostrarForm(true);
-}
+  async function abrirEdicion(producto) {
+    try {
+      const res = await api.get(`/Producto/Obtener/${producto.idProducto}`);
+
+      setProductoEditando(res.data.response);
+      setMostrarForm(true);
+    } catch (err) {
+      console.error(err);
+
+      // Si falla el Obtener, usa los datos que ya tenía
+      setProductoEditando(producto);
+      setMostrarForm(true);
+    }
+  }
 
   function abrirNuevo() {
     setProductoEditando(null);
@@ -72,7 +90,10 @@ export default function Productos() {
     <div className="pagina">
       <div className="pagina-header">
         <h1>Productos</h1>
-        <button onClick={abrirNuevo}>+ Nuevo producto</button>
+
+        <button onClick={abrirNuevo}>
+          + Nuevo producto
+        </button>
       </div>
 
       {error && <div className="auth-error">{error}</div>}
@@ -102,9 +123,10 @@ export default function Productos() {
               <th>Precio</th>
               <th>Stock</th>
               <th>Estado</th>
-              <th></th>
+              <th>Acciones</th>
             </tr>
           </thead>
+
           <tbody>
             {productos.map((p) => (
               <tr key={p.idProducto}>
@@ -113,8 +135,12 @@ export default function Productos() {
                 <td>${p.precio}</td>
                 <td>{p.stock}</td>
                 <td>{p.estado ? "Activo" : "Inactivo"}</td>
+
                 <td className="acciones-tabla">
-                  <button onClick={() => abrirEdicion(p)}>Editar</button>
+                  <button onClick={() => abrirEdicion(p)}>
+                    Editar
+                  </button>
+
                   <button
                     className="btn-peligro"
                     onClick={() => manejarEliminar(p.idProducto)}
