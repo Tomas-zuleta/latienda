@@ -58,9 +58,10 @@ export default function Productos() {
   }
 
   function abrirEdicion(producto) {
-    setProductoEditando(producto);
-    setMostrarForm(true);
-  }
+  console.log(producto);
+  setProductoEditando(producto);
+  setMostrarForm(true);
+}
 
   function abrirNuevo() {
     setProductoEditando(null);
